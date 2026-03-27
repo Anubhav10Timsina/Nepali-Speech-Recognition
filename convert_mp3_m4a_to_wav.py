@@ -94,7 +94,6 @@ def main() -> int:
             print(f"                Reason: {exc}")
 
     print("\n[SUMMARY]")
-    print("\n\n")
     print(f"Converted: {ok}")
     print(f"Failed: {fail}")
     return 0 if fail == 0 else 2
