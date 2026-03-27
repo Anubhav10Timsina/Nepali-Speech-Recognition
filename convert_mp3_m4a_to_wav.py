@@ -64,6 +64,7 @@ def detect_input_root() -> Path | None:
 def main() -> int:
     detected_root = detect_input_root()
     if detected_root is None:
+        print("Detected root is None")
         checked = ", ".join(str(p) for p in PREFERRED_INPUT_ROOTS)
         print(f"[ERROR] Input folder not found. Checked: {checked}")
         return 1
