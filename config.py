@@ -19,5 +19,5 @@ NUM_CLASSES = len(SENTENCES)
 
 # Audio processing parameters
 SAMPLE_RATE = 22050
-DURATION = 3.224 
+DURATION = 4.224 
 N_MFCC = 13
