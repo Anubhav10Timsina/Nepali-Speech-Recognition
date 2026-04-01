@@ -1,2 +1,5 @@
 .venv
 .DS_Store
+.venv-1
+csv
+data
