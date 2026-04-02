@@ -20,18 +20,6 @@ def mfcc(data, sr, frame_length=2048, hop_length=512, flatten=True):
     mfcc_feature = librosa.feature.mfcc(y=data, sr=sr)
     return np.squeeze(mfcc_feature.T) if not flatten else np.ravel(mfcc_feature.T)
 
-# --- AUGMENTATION FUNCTIONS ---
-def add_noise(data, noise_factor=0.01):
-    noise = np.random.randn(len(data))
-    return data + noise_factor * np.amax(data) * noise
-
-def time_stretch(data, rate=0.85):
-    return librosa.effects.time_stretch(y=data, rate=rate)
-
-def pitch_shift(data, sr, n_steps=2):
-    return librosa.effects.pitch_shift(y=data, sr=sr, n_steps=n_steps)
-# ------------------------------
-
 def process_audio_array(audio, sample_rate):
     """Processes raw audio arrays to extract and stack features."""
     # 1. Padding / Truncation
@@ -72,23 +60,8 @@ def main():
                     # Load original
                     audio, sample_rate = librosa.load(file_path, sr=SAMPLE_RATE, duration=DURATION, offset=OFFSET)
                     
-                    # 1. Original (Total 5 files -> 5 items)
+                    # Process and append only the original audio
                     X.append(process_audio_array(audio, sample_rate))
-                    Y.append(category)
-                    count += 1
-                    
-                    # 2. Add Noise (Total 5 files -> another 5 = 10 total)
-                    X.append(process_audio_array(add_noise(audio), sample_rate))
-                    Y.append(category)
-                    count += 1
-                    
-                    # 3. Slower (Time Stretch) (Total 5 files -> another 5 = 15 total)
-                    X.append(process_audio_array(time_stretch(audio, rate=0.85), sample_rate))
-                    Y.append(category)
-                    count += 1
-                    
-                    # 4. Faster (Time Stretch) (Total 5 files -> another 5 = 20 total) 
-                    X.append(process_audio_array(time_stretch(audio, rate=1.15), sample_rate))
                     Y.append(category)
                     count += 1
                     
