@@ -3,47 +3,42 @@ import librosa
 import numpy as np
 from config import DATA_PATH, PROCESSED_DATA_PATH, SENTENCES, SAMPLE_RATE, DURATION
 
-# Audio parameters
-OFFSET = 0.0 # No offset since the sentence audio starts immediately
+OFFSET = 0.0 
 FRAME_LENGTH = 2048
 HOP_LENGTH = 512
 
-def zcr(data, frame_length=2048, hop_length=512):
-    zcr_val = librosa.feature.zero_crossing_rate(y=data, frame_length=frame_length, hop_length=hop_length)
-    return np.squeeze(zcr_val)
+import os
+import librosa
+import numpy as np
 
-def rmse(data, frame_length=2048, hop_length=512):
-    rmse_val = librosa.feature.rms(y=data, frame_length=frame_length, hop_length=hop_length)
-    return np.squeeze(rmse_val)
 
-def mfcc(data, sr, frame_length=2048, hop_length=512, flatten=True):
-    mfcc_feature = librosa.feature.mfcc(y=data, sr=sr)
-    return np.squeeze(mfcc_feature.T) if not flatten else np.ravel(mfcc_feature.T)
+FRAME_LENGTH = 2048
+HOP_LENGTH = 512
 
-def process_audio_array(audio, sample_rate):
-    """Processes raw audio arrays to extract and stack features."""
-    # 1. Padding / Truncation
+def process_audio_sequence(audio, sample_rate):
+    audio, _ = librosa.effects.trim(audio, top_db=20)
+    if len(audio) > 0:
+        audio = librosa.util.normalize(audio)
+        
     target_length = int(sample_rate * DURATION)
     if len(audio) < target_length:
         audio = np.pad(audio, (0, max(0, target_length - len(audio))), "constant")
     else:
         audio = audio[:target_length]
     
-    # 2. Extract the 3 features
-    res1 = zcr(audio, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH)
-    res2 = rmse(audio, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH)
-    res3 = mfcc(audio, sr=sample_rate, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH)
+    zcr_val = librosa.feature.zero_crossing_rate(audio, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH).T
+    rmse_val = librosa.feature.rms(y=audio, frame_length=FRAME_LENGTH, hop_length=HOP_LENGTH).T
+    mfcc_val = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=13, hop_length=HOP_LENGTH).T
     
-    # 3. Stack horizontally
-    result = np.hstack((res1, res2, res3))
-    return result
+    sequence = np.hstack((zcr_val, rmse_val, mfcc_val))
+    return sequence
 
-def main():
+def process_and_save():
     X = []
     Y = []
     
     os.makedirs(PROCESSED_DATA_PATH, exist_ok=True)
-    print(f"Extracting features, categories to process: {len(SENTENCES)}")
+    print("Extracting sequential features for LSTM...")
     
     for category in SENTENCES:        
         folder_path = os.path.join(DATA_PATH, category)
@@ -51,38 +46,34 @@ def main():
             print(f"Skipping {category}: directory not found")
             continue
             
-        print(f"\nProcessing category: {category}")
+        print(f"Processing category: {category}")
         count = 0
         for file in os.listdir(folder_path):
-            if file.endswith('.wav'):
+            if file.lower().endswith('.wav'): 
                 file_path = os.path.join(folder_path, file)
                 try:
-                    # Load original
-                    audio, sample_rate = librosa.load(file_path, sr=SAMPLE_RATE, duration=DURATION, offset=OFFSET)
+                    audio, sr = librosa.load(file_path, sr=SAMPLE_RATE)
+                    features = process_audio_sequence(audio, sr)
                     
-                    # Process and append only the original audio
-                    X.append(process_audio_array(audio, sample_rate))
+                    X.append(features)
                     Y.append(category)
                     count += 1
-                    
                 except Exception as e:
                     print(f"Error processing {file_path}: {e}")
                     
-        print(f" -> Generated {count} samples for {category}")
+        print(f" -> {count} samples generated.")
 
     X = np.array(X)
     Y = np.array(Y)
     
-    print(f"\nTotal dataset size extracted: {len(X)}")
     if len(X) > 0:
-        X = np.expand_dims(X, axis=2)
-        print(f"Final feature shape (ready for model): {X.shape}")
+        print(f"\nFinal feature shape (Should be N, 182, 15): {X.shape}")
         
         np.save(os.path.join(PROCESSED_DATA_PATH, 'X.npy'), X)
         np.save(os.path.join(PROCESSED_DATA_PATH, 'Y.npy'), Y)
-        print("Done saving X.npy and Y.npy")
+        print("Done saving new X.npy and Y.npy for the LSTM model!")
     else:
         print("No data extracted. Please check your config paths and audio files.")
 
 if __name__ == "__main__":
-    main()
+    process_and_save()
