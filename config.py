@@ -3,6 +3,8 @@
 DATA_PATH = "/Users/ayamkattel/Desktop/MISC_LATEST/Nepali-Speech-Recognition/data/raw"
 PROCESSED_DATA_PATH = "/Users/ayamkattel/Desktop/MISC_LATEST/Nepali-Speech-Recognition/data/processed"
 MODEL_SAVE_PATH = "/Users/ayamkattel/Desktop/MISC_LATEST/Nepali-Speech-Recognition/models/nepali_asr_model.h5"
+# TEST_DATA_PATH="/Users/ayamkattel/Desktop/MISC_LATEST/Nepali-Speech-Recognition/test/raw"
+# TEST_PROCESSED_DATA_PATH="/Users/ayamkattel/Desktop/MISC_LATEST/Nepali-Speech-Recognition/test/processed"
 
 # 8 Nepali sentence categories
 SENTENCES = [
