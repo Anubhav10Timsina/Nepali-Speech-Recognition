@@ -3,3 +3,9 @@
 .venv-1
 csv
 data
+nepali_model_artifacts.zip
+Archive.zip
+utils.py
+/misc
+label_encoder.joblib
+scaler.joblib
